@@ -28,3 +28,6 @@
 
 # Exe Usage
 	Coming Soon
+
+# Bash Usage
+	Coming Soon
