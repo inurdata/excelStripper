@@ -1,2 +1,2 @@
-# pythonTools
-simple python tools to help people do everyday things
+# excelStripper
+Python program to strip rows out of a csv file based on keyword.
