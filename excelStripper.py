@@ -1,7 +1,7 @@
 import csv
 import xlrd
 import argparse
-import sys
+
 
 #usage info
 def msg(name=None):
