@@ -3,13 +3,25 @@ import xlrd
 import argparse
 import sys
 
+#usage info
+def msg(name=None):
+	return '''
+	|  | |       _______|__________*_____________________________
+	 \/  |      |_____  |   |/   \ | |/    \|/    \|    \ |/   
+	 /\  |            | |   |      | |\____/|\____/|____/ |    
+	|  | |____   ____ | |   |      | |      |      \_____ |     
+	                                 |      |
+	excelStripper deletes rows from a csv file based on keywords.
+	Usage: excelStripper.py -h -i INPUT -o OUTPUT -k KEYFILE -K KEYWORDS -g -G
+	'''
+
 #global vars
 inFile = ""
 outFile = ""
 keywordInput = ""
 fileInput = ""
 keys = []
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(usage=msg())
 
 #excelStripper.py by inurdata
 #This program strips rows from csv files if they contain a keyword.
