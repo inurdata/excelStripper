@@ -14,8 +14,8 @@ def msg(name=None):
 	                                 |      |
 	excelStripper deletes rows from a csv file based on keywords.
 	Usage: excelStripper.py -h -i INPUT -o OUTPUT -k KEYFILE -K KEYWORDS -s SHEETNAME -g -G
-	>>>>if you don't specify an output file the output will be saved as input.csv.new
-	>>>>if you input an excel file and don't specify a sheet it defaults to filename
+	>>>>if you don't specify an output file the output will be saved as output.csv
+	>>>>if you input an .xlsx or .xls file and don't specify a sheet it defaults to its filename
 	'''
 
 #global vars
@@ -31,7 +31,7 @@ parser = argparse.ArgumentParser(usage=msg())
 #excelStripper.py by inurdata
 #This program strips rows from csv files if they contain a keyword.
 #If you import an excel file it converts it to csv.
-#if you don't specify output it saves the csv as .csv.new
+#if you don't specify output it saves the csv as output.csv
 
 #command line args
 parser.add_argument('-i', '--input', type=str, help="input file location: C:\Path\input.csv")
@@ -44,12 +44,20 @@ parser.add_argument('-G', '--gui', help="use by itself for GUI mode", action="st
 parser.parse_args()
 args = parser.parse_args()
 
-#DEFINITIONS
+#FUNCTIONS
 def getSheetName(inputFile):
 	from os.path import basename
 	s = basename(inputFile)
 	s = s.rsplit(".",1)[0]
 	return s;
+
+def setOutFile(inputFile):
+	from os.path import basename
+	file = basename(inputFile)
+	path = inputFile.replace(file,'')
+	out = path+"output.csv"
+	return out;
+
 #_______________________________________________________________________________________________________________________
 #GUIDED MODE
 if args.guided:
@@ -72,7 +80,7 @@ if args.guided:
 		#ask for output location
 		outFile = raw_input("Please enter output file location ie C:\Path\output.csv: ")
 		if outFile == "":
-			outFile = inFile+".new"
+			outFile = setOutFile(inFile)
 			print "Output file location = ", outFile
 
 #GUI MODE
@@ -86,7 +94,7 @@ elif args.input:
 	if args.output:
 		outFile = args.output
 	else:
-		outFile = inFile+".new"
+		outFile = setOutFile(inFile)
 	if args.keywords:
 		keywordInput = args.keywords
 	if args.keyfile:
@@ -134,7 +142,7 @@ if inFile.endswith('.xlsx') or inFile.endswith('.xls'):
 	for rowNum in xrange(workSheet.nrows):
 		wr.writerow(list(x.encode('utf-8') if type(x) == type(u'') else x for x in workSheet.row_values(rowNum)))
 	inFile = csvFile.name
-	outFile = inFile+".new"
+	outFile = setOutFile(inFile)
 	csvFile.close()
 	print "Conversion Complete"
 
