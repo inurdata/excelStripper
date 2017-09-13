@@ -114,11 +114,11 @@ elif args.gui:
 		global keywordInput
 		global fileInput
 		if inFile is "":
-			messagebox.showinfo("ERROR!", "You need to select an input file.")
+			messagebox.showerror("ERROR!", "You need to select an input file.")
 			return;
 		keywordInput = keyTxt.get()
 		if keywordInput or fileInput is "":
-			messagebox.showinfo("ERROR!", "You need to enter a keyword or keyword file.")
+			messagebox.showerror("ERROR!", "You need to enter a keyword or keyword file.")
 			return;
 		gui.destroy()
 		return;
