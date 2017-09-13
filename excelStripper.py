@@ -1,8 +1,6 @@
 import csv
 import xlrd
 import argparse
-import os
-
 
 #usage info
 def msg(name=None):
@@ -58,43 +56,119 @@ def setOutFile(inputFile):
 	out = path+"output.csv"
 	return out;
 
-#_______________________________________________________________________________________________________________________
+#MODES_______________________________________________________________________________________________________________________
 #GUIDED MODE
 if args.guided:
 	while inFile == "":
 		inFile = raw_input("Please enter csv file location ie C:\Path\input.csv: ")
 		if inFile == "":
 			print "Please enter a file location!"
-		else:
-			print "File location =", inFile
 		#check for xlsx or xls file and ask for sheet name
 		if inFile.endswith(('.xlsx', '.xls')):
 			sheet = raw_input("Enter your sheet name or press enter to skip (default is name of file): ")
 			if sheet is "":
 				sheet = getSheetName(inFile)
-			print "Sheet =", sheet
 		#Get keyword input from user
 		keywordInput = raw_input("Enter keywords separate by a comma ie key0, key1, keyETC...(Press Enter for none): ")
 		fileInput = raw_input("Please enter text file keyword list ie C:\Path\keys.txt (Press Enter for none): ")
 
 		#ask for output location
 		outFile = raw_input("Please enter output file location ie C:\Path\output.csv: ")
-		if outFile == "":
-			outFile = setOutFile(inFile)
-			print "Output file location = ", outFile
+
 
 #GUI MODE
 elif args.gui:
-	print "in progress"
-	exit()
+	from Tkinter import *
+	from Tkinter import messagebox
+	import Tkinter, Tkconstants, tkFileDialog
+	import os
+	gui = Tk()
+	cwd = os.getcwd()
+	gui.resizable(width=True, height=True)
+	gui.geometry('{}x{}'.format(400, 400))
+
+	#Button Definitions
+	def inputButton():
+		gui.inFile = tkFileDialog.askopenfilename(initialdir = cwd, title = "Select INPUT file", filetypes = (("CSV Files","*.csv"),("Excel Files","*.xlsx"),("All Files", "*.*")) )
+		global inFile
+		global inLabel
+		inFile = gui.inFile
+		inLabel.config(text=gui.inFile)
+		return;
+	def outputButton():
+		gui.outFile = tkFileDialog.asksaveasfile(initialdir = cwd, mode="w", title="Save OUTPUT file as", defaultextension=".csv", filetypes = (("CSV Files", "*.csv"),("All Files", "*.*")))
+		global outFile
+		global outLabel
+		outFile = gui.outFile
+		outLabel.config(text=gui.outFile)
+		return;
+	def keyButton():
+		gui.fileInput = tkFileDialog.askopenfilename(initialdir = cwd, title = "Select KEY WORD file", filetypes = (("TXT Files","*.txt"),("All Files", "*.*")) )
+		global fileInput
+		global keyLabel
+		fileInput = gui.fileInput
+		keyLabel.config(text=gui.fileInput)
+		return;
+	def complete():
+		global inFile
+		global keywordInput
+		global fileInput
+		if inFile is "":
+			messagebox.showinfo("ERROR!", "You need to select an input file.")
+			return;
+		keywordInput = keyTxt.get()
+		if keywordInput or fileInput is "":
+			messagebox.showinfo("ERROR!", "You need to enter a keyword or keyword file.")
+			return;
+		gui.destroy()
+		return;
+	def quit():
+		gui.destroy()
+		exit()
+		return;
+
+	#Buttons and things
+	HEAD0=Label(gui, text="	|  | |       _______|______ *_____________________________")
+	HEAD1=Label(gui, text="	\/  |      |_____   |   |/   \ | |/    \|/    \|    \ |/")
+	HEAD2=Label(gui, text=" 	/\  |                | |   |       | |\__ /|\__ /|__ / |")
+	HEAD3=Label(gui, text="	|  | |__________| |   |       | |       |         \__  |")
+	HEAD4=Label(gui, text="	                                       |       |")
+	HEAD0.pack(anchor=Tkinter.W)
+	HEAD1.pack(anchor=Tkinter.W)
+	HEAD2.pack(anchor=Tkinter.W)
+	HEAD3.pack(anchor=Tkinter.W)
+	HEAD4.pack(anchor=Tkinter.W)
+	INFO = Label(gui, justify=LEFT, text="excelStripper deletes rows from a csv file based on keywords.")
+	INFO.pack()
+	inLabel = Label(gui, text=inFile)
+	inLabel.pack()
+	IN = Button(gui, text="Input File", command=inputButton, height=1, width=10)
+	IN.pack()
+	outLabel = Label(gui, text=outFile)
+	outLabel.pack()
+	OUT = Button(gui, text="Output File", command=outputButton, height=1, width=10)
+	OUT.pack()
+	keyLabel = Label(gui, text=fileInput)
+	keyLabel.pack()
+	KEY = Button(gui, text="Key File", command=keyButton, height=1, width=10)
+	KEY.pack()
+	txtLabel = Label(gui, text="Enter comma separated keywords here ie Key1, Key2, KeyETC: ")
+	txtLabel.pack()
+	keyTxt = Entry(gui)
+	keyTxt.pack()
+	keyTxt.focus_set()
+	OK = Button(gui, text="GO!", command=complete, height=1, width=10)
+	OK.pack()
+	EXIT = Button(gui, text="Exit", command=quit, height=1, width=10)
+	EXIT.pack()
+
+	gui.mainloop()
 
 #CMD LINE MODE
 elif args.input:
 	inFile = args.input
 	if args.output:
 		outFile = args.output
-	else:
-		outFile = setOutFile(inFile)
 	if args.keywords:
 		keywordInput = args.keywords
 	if args.keyfile:
@@ -104,7 +178,12 @@ elif args.input:
 else:
 	parser.print_help()
 	exit()
-#______________________________________________________________________________________________________________________
+
+#ERROR HANDLING & WORK PORTION__________________________________________________________________________________________
+
+#infile error handling
+if inFile is "":
+	print "ERROR: you did not enter an input file."
 
 # manual key input handler
 if keywordInput != "":
@@ -142,10 +221,12 @@ if inFile.endswith('.xlsx') or inFile.endswith('.xls'):
 	for rowNum in xrange(workSheet.nrows):
 		wr.writerow(list(x.encode('utf-8') if type(x) == type(u'') else x for x in workSheet.row_values(rowNum)))
 	inFile = csvFile.name
-	outFile = setOutFile(inFile)
 	csvFile.close()
 	print "Conversion Complete"
 
+#set outfile if none set
+if outFile is "":
+	outFile = setOutFile(inFile)
 
 #print out options
 print "Input file = ", inFile
