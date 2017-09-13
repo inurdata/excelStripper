@@ -10,10 +10,14 @@ def msg(name=None):
 	 /\  |            | |   |      | |\____/|\____/|____/ |    
 	|  | |____   ____ | |   |      | |      |      \_____ |     
 	                                 |      |
-	excelStripper deletes rows from a csv file based on keywords.
-	Usage: excelStripper.py -h -i INPUT -o OUTPUT -k KEYFILE -K KEYWORDS -s SHEETNAME -g -G
-	>>>>if you don't specify an output file the output will be saved as output.csv
-	>>>>if you input an .xlsx or .xls file and don't specify a sheet it defaults to its filename
+	/  \      _______________________________________________________________________________________
+    	|  |     |excelStripper deletes rows from a csv file based on keywords.                           \
+    	@  @    / Usage: excelStripper.py -h -i INPUT -o OUTPUT -k KEYFILE -K KEYWORDS -s SHEETNAME -g -G  \   
+    	|  |   /  >>>>if you don't specify an output file the output will be saved as output.csv/           |
+    	|| |/ / >>>>if you input an .xlsx or .xls file and don't specify a sheet it defaults to its filename/
+    	|| ||  *-------------------------------------------------------------------------------------------* 
+    	|\_/|
+    	\___/ 
 	'''
 
 #global vars
