@@ -9,13 +9,13 @@ def msg(name=None):
 	 \/  |      |_____  |   |/   \ | |/    \|/    \|    \ |/   
 	 /\  |            | |   |      | |\____/|\____/|____/ |    
 	|  | |____   ____ | |   |      | |      |      \_____ |     
-	                                 |      |
-	/  \      _______________________________________________________________________________________
-	|  |     |excelStripper deletes rows from a csv file based on keywords.                           \ 
-	@  @    / Usage: excelStripper.py -h -i INPUT -o OUTPUT -k KEYFILE -K KEYWORDS -s SHEETNAME -g -G  \   
-	|  |   /  >>>>if you don't specify an output file the output will be saved as output.csv/           |
-	|| |/ / >>>>if you input an .xlsx or .xls file and don't specify a sheet it defaults to its filename/
-	|| ||  *-------------------------------------------------------------------------------------------* 
+	 __                              |      |
+	/  \      ____________________________________________________________________________________________
+	|  |     |excelStripper deletes rows from a csv file based on keywords.                                \ 
+	@  @    / Usage: excelStripper.py -h -i INPUT -o OUTPUT -k KEYFILE -K KEYWORDS -s SHEETNAME -g -G -v -q \   
+	|  |   /  >>>>if you don't specify an output file the output will be saved as output.csv/               |
+	|| |/ / >>>>if you input an .xlsx or .xls file and don't specify a sheet it defaults to its filename   /
+	|| ||  *----------------------------------------------------------------------------------------------* 
 	|\_/|
 	\___/ 
 	'''
@@ -43,6 +43,8 @@ parser.add_argument('-K', '--keywords', type=str, help="comma separated keywords
 parser.add_argument('-s', '--sheet', type=str, help="sheet to use if inputting an xlsx or xls file: SheetName")
 parser.add_argument('-g', '--guided', help="use by itself for guided command line mode", action="store_true")
 parser.add_argument('-G', '--gui', help="use by itself for GUI mode", action="store_true")
+parser.add_argument('-v', '--verbose', help="print out deleted lines", action="store_true")
+parser.add_argument('-q', '--quiet', help="don't display any output", action="store_true")
 parser.parse_args()
 args = parser.parse_args()
 
@@ -214,7 +216,8 @@ if not inFile.lower().endswith(('.xlsx', '.xls', '.csv')):
 
 #convert xlsx file or xls file to csv
 if inFile.endswith('.xlsx') or inFile.endswith('.xls'):
-	print "Converting xlsx/xls file to csv..."
+	if not args.quiet:
+		print "Converting xlsx/xls file to csv..."
 	if args.sheet:
 		sheet = args.sheet
 	workBook = xlrd.open_workbook(inFile)
@@ -226,25 +229,32 @@ if inFile.endswith('.xlsx') or inFile.endswith('.xls'):
 		wr.writerow(list(x.encode('utf-8') if type(x) == type(u'') else x for x in workSheet.row_values(rowNum)))
 	inFile = csvFile.name
 	csvFile.close()
-	print "Conversion Complete"
+	if not args.quiet:
+		print "Conversion Complete"
 
 #set outfile if none set
 if outFile is "":
 	outFile = setOutFile(inFile)
 
 #print out options
-print "Input file = ", inFile
-print "Output file = ", outFile
-print "Keywords = ", keys
+if not args.quiet:
+	print "Input file = ", inFile
+	print "Output file = ", outFile
+	print "Keywords = ", keys
 
 #delete rows
 with open(inFile) as inp, open (outFile, 'w') as outp:
-	print "working..."
+	if not args.quiet:
+		print "working..."
 	for line in inp:
+		if args.verbose:
+			if any (i in line for i in keys):
+				print "DELETING: ", line
 		if not any(i in line for i in keys):
 			outp.write(line)
 inp.close()
 outp.close()
-print "done!"
+if not args.quiet:
+	print "done!"
 exit()
 
