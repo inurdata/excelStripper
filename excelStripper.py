@@ -10,12 +10,13 @@ def msg(name=None):
 	 /\  |            | |   |      | |\____/|\____/|____/ |    
 	|  | |____   ____ | |   |      | |      |      \_____ |     
 	 __                              |      |
-	/  \      ____________________________________________________________________________________________
-	|  |     |excelStripper deletes rows from a csv file based on keywords.                                \ 
-	@  @    / Usage: excelStripper.py -h -i INPUT -o OUTPUT -k KEYFILE -K KEYWORDS -s SHEETNAME -g -G -v -q \   
-	|  |   /  >>>>if you don't specify an output file the output will be saved as output.csv/               |
-	|| |/ / >>>>if you input an .xlsx or .xls file and don't specify a sheet it defaults to its filename   /
-	|| ||  *----------------------------------------------------------------------------------------------* 
+	/  \      _________________________________________________________________________________________________
+	|  |     |excelStripper deletes rows from a csv file based on keywords.                                     \ 
+	@  @    / Usage: excelStripper.py -h -i INPUT -o OUTPUT -k KEYFILE -K KEYWORDS -s SHEETNAME -r -d DATERANGE |
+	|  |	|                           -g -G -v -q                                                             |  
+	|  |   /  >>>>if you don't specify an output file the output will be saved as output.csv/                   |
+	|| |/ / >>>>if you input an .xlsx or .xls file and don't specify a sheet it defaults to its filename       /
+	|| ||  *--------------------------------------------------------------------------------------------------* 
 	|\_/|
 	\___/ 
 	'''
@@ -29,6 +30,7 @@ sheet = "Sheet1"
 workBook = ""
 keys = []
 parser = argparse.ArgumentParser(usage=msg())
+dateRange=''
 
 #excelStripper.py by inurdata
 #This program strips rows from csv files if they contain a keyword.
@@ -41,6 +43,8 @@ parser.add_argument('-o', '--output', type=str, help="output file location: C:\P
 parser.add_argument('-k', '--keyfile', type=str, help="keyword text file: C:\Path\keys.txt")
 parser.add_argument('-K', '--keywords', type=str, help="comma separated keywords: key0,key1,keyN")
 parser.add_argument('-s', '--sheet', type=str, help="sheet to use if inputting an xlsx or xls file: SheetName")
+parser.add_argument('-d', '--daterange', type=str, help="Appends dates within a date range to keyword list: mm/dd/yyyy-mm/dd/yyyy")
+parser.add_argument('-r', '--reverse', help="reverse stripping to delete rows NOT containing keyword(s)", action="store_true")
 parser.add_argument('-g', '--guided', help="use by itself for guided command line mode", action="store_true")
 parser.add_argument('-G', '--gui', help="use by itself for GUI mode", action="store_true")
 parser.add_argument('-v', '--verbose', help="print out deleted lines", action="store_true")
@@ -65,6 +69,8 @@ def setOutFile(inputFile):
 #MODES_______________________________________________________________________________________________________________________
 #GUIDED MODE
 if args.guided:
+	options = ['yes', 'no', 'nope', 'yep', 'yeah', 'y', 'n']
+	setRev = ''
 	while inFile == "":
 		inFile = raw_input("Please enter csv file location ie C:\Path\input.csv: ")
 		if inFile == "":
@@ -74,9 +80,19 @@ if args.guided:
 			sheet = raw_input("Enter your sheet name or press enter to skip (default is name of file): ")
 			if sheet is "":
 				sheet = getSheetName(inFile)
-		#Get keyword input from user
+		#Setup keyword
 		keywordInput = raw_input("Enter keywords separate by a comma ie key0, key1, keyETC...(Press Enter for none): ")
 		fileInput = raw_input("Please enter text file keyword list ie C:\Path\keys.txt (Press Enter for none): ")
+		dateRange = raw_input("Please enter a date range to add to your keyword list ie MM/DD/YYYY-MM/DD/YYYY (Press Enter for none): ")
+		while setRev is '':
+			setRev = raw_input("Would you like to delete the rows NOT containing the keywords? (yes or no): ")
+			if setRev.lower() not in options:
+				print "ERROR: you did not enter an appropriate option, please enter yes or no."
+				setRev = ''
+			if ask[:1].lower() is 'y':
+				args.reverse = True
+			else:
+				args.reverse = False
 
 		#ask for output location
 		outFile = raw_input("Please enter output file location ie C:\Path\output.csv: ")
@@ -85,13 +101,14 @@ if args.guided:
 #GUI MODE
 elif args.gui:
 	from Tkinter import *
-	from Tkinter import messagebox
 	import Tkinter, Tkconstants, tkFileDialog
 	import os
 	gui = Tk()
 	cwd = os.getcwd()
 	gui.resizable(width=True, height=True)
-	gui.geometry('{}x{}'.format(400, 400))
+	gui.geometry('{}x{}'.format(500, 500))
+	var = StringVar(gui)
+	var.set("no")
 
 	#Button Definitions
 	def inputButton():
@@ -119,6 +136,11 @@ elif args.gui:
 		global inFile
 		global keywordInput
 		global fileInput
+		setRev = var.get()
+		if setRev is "yes":
+			args.reverse = True
+		else:
+			args.reverse = False
 		if inFile is "":
 			messagebox.showerror("ERROR!", "You need to select an input file.")
 			return;
@@ -163,6 +185,11 @@ elif args.gui:
 	keyTxt = Entry(gui)
 	keyTxt.pack()
 	keyTxt.focus_set()
+	optionLabel = Label(gui, text="Select yes if you'd like to delete rows NOT containing the keyword(s).")
+	optionLabel.pack()
+	option = OptionMenu(gui, var, "no", "yes")
+	option.pack()
+
 	OK = Button(gui, text="GO!", command=complete, height=1, width=10)
 	OK.pack()
 	EXIT = Button(gui, text="Exit", command=quit, height=1, width=10)
@@ -236,22 +263,63 @@ if inFile.endswith('.xlsx') or inFile.endswith('.xls'):
 if outFile is "":
 	outFile = setOutFile(inFile)
 
+#set date range
+if args.daterange:
+	dateRange = args.daterange
+
 #print out options
 if not args.quiet:
 	print "Input file = ", inFile
 	print "Output file = ", outFile
 	print "Keywords = ", keys
+	print "Date Range = ", dateRange
+	if args.reverse:
+		print "Reverse flag set to true."
+
+#Add date range to keys NOTE: this is not added before to keys because printing out key list could be long!
+if dateRange != '':
+	from datetime import date, datetime, timedelta
+	start = []
+	end = []
+	tempStart, tempEnd = dateRange.split('-')
+	if tempStart > tempEnd:
+		tempS = tempStart
+		tempStart = tempEnd
+		tempEnd = tempS
+	tempStart = tempStart.split('/')
+	tempEnd = tempEnd.split('/')
+	for i in tempStart:
+		start.append(int(i))
+	for i in tempEnd:
+		end.append(int(i))
+	def stepTime(start, end, delta):
+		i = start
+		while i < end:
+			yield i
+			i += delta
+	for result in stepTime(date(start[2], start[0], start[1]), date(end[2], end[0], end[1]), timedelta(days=1)):
+		result = str(result)
+		dt = datetime.strptime(result, '%Y-%m-%d').strftime('%m/%d/%Y')
+		keys.append(str(dt))
 
 #delete rows
 with open(inFile) as inp, open (outFile, 'w') as outp:
 	if not args.quiet:
 		print "working..."
 	for line in inp:
-		if args.verbose:
-			if any (i in line for i in keys):
-				print "DELETING: ", line
-		if not any(i in line for i in keys):
-			outp.write(line)
+		if args.reverse:
+			if args.verbose:
+				if not any (i in line for i in keys):
+					print "DELETING: ", line
+			if any(i in line for i in keys):
+				outp.write(line)
+		else:
+			if args.verbose:
+				if any(i in line for i in keys):
+					print "DELETING: ", line
+			if not any(i in line for i in keys):
+				outp.write(line)
+
 inp.close()
 outp.close()
 if not args.quiet:
