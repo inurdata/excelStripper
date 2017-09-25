@@ -136,6 +136,7 @@ elif args.gui:
 		global inFile
 		global keywordInput
 		global fileInput
+		global dateRange
 		setRev = var.get()
 		if setRev is "yes":
 			args.reverse = True
@@ -145,6 +146,7 @@ elif args.gui:
 			messagebox.showerror("ERROR!", "You need to select an input file.")
 			return;
 		keywordInput = keyTxt.get()
+		dateRange = dateTxt.get()
 		if keywordInput or fileInput is "":
 			messagebox.showerror("ERROR!", "You need to enter a keyword or keyword file.")
 			return;
@@ -185,6 +187,11 @@ elif args.gui:
 	keyTxt = Entry(gui)
 	keyTxt.pack()
 	keyTxt.focus_set()
+	dateLabel = Label(gui, text="Enter date range (optional): MM/DD/YYYY-MM/DD/YYYY")
+	dateLabel.pack()
+	dateTxt = Entry(gui)
+	dateTxt.pack()
+	dateTxt.focus_set()
 	optionLabel = Label(gui, text="Select yes if you'd like to delete rows NOT containing the keyword(s).")
 	optionLabel.pack()
 	option = OptionMenu(gui, var, "no", "yes")
